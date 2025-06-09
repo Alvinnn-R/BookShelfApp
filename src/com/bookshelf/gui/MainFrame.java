@@ -13,7 +13,7 @@ public class MainFrame extends JFrame {
     private BookDAO bookDAO;
 
     public MainFrame() {
-        super("Simple Bookshelf Apps");
+        super("Bookshelf Apps");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 500);
         setLocationRelativeTo(null);

@@ -1,42 +1,43 @@
 package com.bookshelf.main;
 
-// import com.bookshelf.gui.MainFrame;
 import com.bookshelf.database.DatabaseManager;
 import javax.swing.*;
 
 /**
- * Main Application Class for Simple Bookshelf Apps
- * Entry point for the desktop application
+ * Kelas utama aplikasi Simple Bookshelf Apps
+ * Titik masuk (entry point) aplikasi desktop
  */
 public class BookshelfApp {
     
     public static void main(String[] args) {
-        // Set system look and feel
+        // Mengatur tampilan aplikasi mengikuti sistem operasi
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             System.err.println("Could not set system look and feel: " + e.getMessage());
         }
         
-        // Set application properties
+        // Menyimpan properti nama dan versi aplikasi
         System.setProperty("app.name", "Simple Bookshelf Apps");
         System.setProperty("app.version", "1.0.0");
         
-        // Initialize and test database
+        // Inisialisasi dan tes koneksi database
         System.out.println("=== Simple Bookshelf Apps v1.0.0 ===");
         System.out.println("Initializing application...");
         
         DatabaseManager dbManager = DatabaseManager.getInstance();
         
+        // Jika koneksi database berhasil, tampilkan GUI utama
         if (dbManager.testConnection()) {
             System.out.println("✅ Database connection successful!");
             
-            // Tampilkan GUI utama
+            // Menampilkan window utama aplikasi secara thread-safe
             SwingUtilities.invokeLater(() -> {
                 new com.bookshelf.gui.MainFrame().setVisible(true);
             });
             
         } else {
+            // Jika koneksi database gagal, tampilkan pesan error
             System.err.println("❌ Database connection failed!");
             showErrorDialog("Database Error", 
                 "Could not connect to database.\n\n" +
@@ -50,9 +51,9 @@ public class BookshelfApp {
     }
     
     /**
-     * Show error dialog to user
-     * @param title Dialog title
-     * @param message Error message
+     * Menampilkan dialog error ke user jika terjadi masalah (misal: koneksi database gagal)
+     * @param title Judul dialog
+     * @param message Pesan error yang ditampilkan
      */
     private static void showErrorDialog(String title, String message) {
         SwingUtilities.invokeLater(() -> {
@@ -67,7 +68,7 @@ public class BookshelfApp {
     }
     
     /**
-     * Show application info
+     * Menampilkan informasi tentang aplikasi (About)
      */
     public static void showAbout() {
         String aboutText = """
@@ -97,7 +98,7 @@ public class BookshelfApp {
     }
     
     /**
-     * Show system information
+     * Menampilkan informasi sistem dan aplikasi (Java, OS, memori, database)
      */
     public static void showSystemInfo() {
         DatabaseManager dbManager = DatabaseManager.getInstance();
@@ -148,7 +149,7 @@ public class BookshelfApp {
     }
     
     /**
-     * Shutdown hook for cleanup
+     * Shutdown hook untuk membersihkan resource saat aplikasi ditutup
      */
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
