@@ -1,14 +1,23 @@
 package com.bookshelf.main;
 
+// Import class GUI dan manajemen database
 import com.bookshelf.database.DatabaseManager;
+import com.bookshelf.gui.LoginFrame;
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.swing.*;
 
 /**
- * Kelas utama aplikasi Simple Bookshelf Apps
- * Titik masuk (entry point) aplikasi desktop
+ * Kelas utama (main class) untuk menjalankan aplikasi Bookshelf.
+ * Ini adalah titik masuk utama program (entry point).
  */
 public class BookshelfApp {
-    
+
+    /**
+     * Method utama yang dijalankan saat aplikasi mulai.
+     * Mengatur tampilan (Look and Feel), membuat koneksi ke database,
+     * lalu menampilkan halaman login.
+     */
     public static void main(String[] args) {
         // Mengatur tampilan aplikasi mengikuti sistem operasi
         try {
@@ -16,79 +25,82 @@ public class BookshelfApp {
         } catch (Exception e) {
             System.err.println("Could not set system look and feel: " + e.getMessage());
         }
-        
+
         // Menyimpan properti nama dan versi aplikasi
         System.setProperty("app.name", "Simple Bookshelf Apps");
         System.setProperty("app.version", "1.0.0");
-        
+
         // Inisialisasi dan tes koneksi database
         System.out.println("=== Simple Bookshelf Apps v1.0.0 ===");
         System.out.println("Initializing application...");
-        
-        DatabaseManager dbManager = DatabaseManager.getInstance();
-        
-        // Jika koneksi database berhasil, tampilkan GUI utama
-        if (dbManager.testConnection()) {
-            System.out.println("✅ Database connection successful!");
-            
-            // Menampilkan window utama aplikasi secara thread-safe
-            SwingUtilities.invokeLater(() -> {
-                new com.bookshelf.gui.MainFrame().setVisible(true);
-            });
-            
-        } else {
-            // Jika koneksi database gagal, tampilkan pesan error
+
+        try {
+            // Dapatkan instance DatabaseManager (singleton)
+            DatabaseManager dbManager = DatabaseManager.getInstance();
+
+            // Tes koneksi database
+            if (dbManager.testConnection()) {
+                System.out.println("✅ Database connection successful!");
+
+                // Dapatkan koneksi database
+                Connection conn = dbManager.getConnection();
+
+                // Jalankan GUI di thread Event Dispatch
+                SwingUtilities.invokeLater(() -> {
+                    new LoginFrame(conn).setVisible(true);
+                });
+            } else {
+                // Jika koneksi database gagal, tampilkan pesan error
+                showErrorDialog("Database Error", "Gagal terhubung ke database.\nSilakan cek konfigurasi database Anda.");
+            }
+        } catch (SQLException ex) {
+            // Tampilkan pesan error jika koneksi gagal
             System.err.println("❌ Database connection failed!");
-            showErrorDialog("Database Error", 
-                "Could not connect to database.\n\n" +
-                "Please check:\n" +
-                "1. MySQL JDBC driver (mysql-connector-java-x.x.x.jar) is in classpath\n" +
-                "2. MySQL server is running (XAMPP/WAMP)\n" +
-                "3. Username/password/port database sudah benar\n" +
-                "4. Database bookshelf_db sudah dibuat atau bisa dibuat otomatis"
-            );
+            JOptionPane.showMessageDialog(null,
+                "Gagal terhubung ke database:\n\n" + ex.getMessage(),
+                "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     /**
-     * Menampilkan dialog error ke user jika terjadi masalah (misal: koneksi database gagal)
-     * @param title Judul dialog
-     * @param message Pesan error yang ditampilkan
+     * Menampilkan dialog error dan keluar dari aplikasi.
+     * @param title   Judul dialog
+     * @param message Pesan error
      */
     private static void showErrorDialog(String title, String message) {
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(
-                null, 
-                message, 
-                title, 
+                null,
+                message,
+                title,
                 JOptionPane.ERROR_MESSAGE
             );
             System.exit(1);
         });
     }
-    
+
     /**
      * Menampilkan informasi tentang aplikasi (About)
      */
     public static void showAbout() {
         String aboutText = """
             Simple Bookshelf Apps v1.0.0
-            
+
             A simple desktop application for managing
             your personal book collection.
-            
+
             Features:
             • Add, edit, and delete books
             • Search and filter books
             • Track reading status
             • Rate your books
             • MySQL database storage
-            
+
             Developed with Java Swing
-            
+
             © 2025 Simple Bookshelf Apps
             """;
-        
+
         JOptionPane.showMessageDialog(
             null,
             aboutText,
@@ -96,13 +108,13 @@ public class BookshelfApp {
             JOptionPane.INFORMATION_MESSAGE
         );
     }
-    
+
     /**
      * Menampilkan informasi sistem dan aplikasi (Java, OS, memori, database)
      */
     public static void showSystemInfo() {
         DatabaseManager dbManager = DatabaseManager.getInstance();
-        
+
         String systemInfo = String.format("""
             System Information
 
@@ -132,14 +144,14 @@ public class BookshelfApp {
             (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024.0 * 1024.0),
             dbManager.getDatabaseStats()
         );
-        
+
         JTextArea textArea = new JTextArea(systemInfo);
         textArea.setEditable(false);
         textArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
-        
+
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setPreferredSize(new java.awt.Dimension(500, 400));
-        
+
         JOptionPane.showMessageDialog(
             null,
             scrollPane,
@@ -147,7 +159,7 @@ public class BookshelfApp {
             JOptionPane.INFORMATION_MESSAGE
         );
     }
-    
+
     /**
      * Shutdown hook untuk membersihkan resource saat aplikasi ditutup
      */
