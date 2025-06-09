@@ -13,7 +13,7 @@ public class DatabaseManager {
     
     // ===== Konfigurasi koneksi database MySQL =====
     private static final String DB_HOST = "localhost";
-    private static final String DB_PORT = "3307";
+    private static final String DB_PORT = "3308";
     private static final String DB_NAME = "bookshelf_db";
     private static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME + 
                                         "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
