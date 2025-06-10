@@ -1,13 +1,11 @@
 package com.bookshelf.main;
 
 // Import class GUI dan manajemen database
-// import com.bookshelf.gui.MainFrame;
 import com.bookshelf.database.DatabaseManager;
-import javax.swing.*;
-
 import com.bookshelf.gui.LoginFrame;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.swing.*;
 
 /**
  * Kelas utama (main class) untuk menjalankan aplikasi Bookshelf.
@@ -21,23 +19,40 @@ public class BookshelfApp {
      * lalu menampilkan halaman login.
      */
     public static void main(String[] args) {
-        // Gunakan tampilan sistem (Windows, macOS, Linux)
+        // Mengatur tampilan aplikasi mengikuti sistem operasi
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             System.err.println("Could not set system look and feel: " + e.getMessage());
         }
 
+        // Menyimpan properti nama dan versi aplikasi
+        System.setProperty("app.name", "Simple Bookshelf Apps");
+        System.setProperty("app.version", "1.0.0");
+
+        // Inisialisasi dan tes koneksi database
+        System.out.println("=== Simple Bookshelf Apps v1.0.0 ===");
+        System.out.println("Initializing application...");
+
         try {
-            // Dapatkan koneksi database melalui DatabaseManager (singleton)
+            // Dapatkan instance DatabaseManager (singleton)
             DatabaseManager dbManager = DatabaseManager.getInstance();
-            Connection conn = dbManager.getConnection();
 
-            // Jalankan GUI di thread Event Dispatch
-            SwingUtilities.invokeLater(() -> {
-                new LoginFrame(conn).setVisible(true);
-            });
+            // Tes koneksi database
+            if (dbManager.testConnection()) {
+                System.out.println("✅ Database connection successful!");
 
+                // Dapatkan koneksi database
+                Connection conn = dbManager.getConnection();
+
+                // Jalankan GUI di thread Event Dispatch
+                SwingUtilities.invokeLater(() -> {
+                    new LoginFrame(conn).setVisible(true);
+                });
+            } else {
+                // Jika koneksi database gagal, tampilkan pesan error
+                showErrorDialog("Database Error", "Gagal terhubung ke database.\nSilakan cek konfigurasi database Anda.");
+            }
         } catch (SQLException ex) {
             // Tampilkan pesan error jika koneksi gagal
             System.err.println("❌ Database connection failed!");
@@ -65,7 +80,7 @@ public class BookshelfApp {
     }
 
     /**
-     * Menampilkan informasi tentang aplikasi.
+     * Menampilkan informasi tentang aplikasi (About)
      */
     public static void showAbout() {
         String aboutText = """
@@ -95,7 +110,7 @@ public class BookshelfApp {
     }
 
     /**
-     * Menampilkan informasi sistem seperti versi Java, OS, dan penggunaan memori.
+     * Menampilkan informasi sistem dan aplikasi (Java, OS, memori, database)
      */
     public static void showSystemInfo() {
         DatabaseManager dbManager = DatabaseManager.getInstance();
@@ -146,8 +161,7 @@ public class BookshelfApp {
     }
 
     /**
-     * Blok static untuk menutup koneksi database saat aplikasi keluar.
-     * Ini adalah shutdown hook.
+     * Shutdown hook untuk membersihkan resource saat aplikasi ditutup
      */
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
