@@ -20,6 +20,7 @@ public class Book {
     private String status; // "Want to Read", "Reading", "Read"
     private LocalDateTime dateAdded;
     private LocalDateTime dateUpdated;
+    private int userId;
     
     // Status constants
     public static final String STATUS_WANT_TO_READ = "Want to Read";
@@ -50,7 +51,7 @@ public class Book {
     // Full Constructor (for database retrieval)
     public Book(int id, String title, String author, String isbn, String genre,
                 int publicationYear, int pages, String description, double rating, 
-                String status, LocalDateTime dateAdded, LocalDateTime dateUpdated) {
+                String status, LocalDateTime dateAdded, LocalDateTime dateUpdated, int userId) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -63,6 +64,7 @@ public class Book {
         this.status = status;
         this.dateAdded = dateAdded;
         this.dateUpdated = dateUpdated;
+        this.userId = userId;
     }
     
     // Getters and Setters

@@ -11,18 +11,22 @@ public class MainFrame extends JFrame {
     private JTable bookTable;
     private BookTableModel tableModel;
     private BookDAO bookDAO;
+    private int userId;  // Menyimpan user_id yang diterima dari LoginFrame
 
-    public MainFrame() {
+    // Konstruktor MainFrame menerima user_id
+    public MainFrame(int userId) {
         super("Simple Bookshelf Apps");
+        this.userId = userId;  // Menyimpan user_id untuk digunakan di refreshTable()
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 500);
         setLocationRelativeTo(null);
 
-        bookDAO = new BookDAO();
+        bookDAO = new BookDAO(userId);
         tableModel = new BookTableModel();
         bookTable = new JTable(tableModel);
 
-        // Load data from database
+        // Load data buku berdasarkan user_id
         refreshTable();
 
         // Toolbar
@@ -37,7 +41,7 @@ public class MainFrame extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnRefresh);
 
-        // Search panel
+        // Panel pencarian
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JTextField searchField = new JTextField(20);
         JButton btnSearch = new JButton("Search");
@@ -62,14 +66,18 @@ public class MainFrame extends JFrame {
         setJMenuBar(createMenuBar());
     }
 
-    private void refreshTable() {
-        List<Book> books = bookDAO.getAllBooks();
-        tableModel.setBooks(books);
-    }
+        // Method untuk menyegarkan tabel setelah menambahkan buku
+        private void refreshTable() {
+            // Memuat ulang data buku dari database dan memperbarui tampilan
+            List<Book> books = bookDAO.getBooksByUserId();  // Misalnya mendapatkan data berdasarkan user_id
+            tableModel.setBooks(books);  // Memperbarui model tabel dengan data terbaru
+            tableModel.fireTableDataChanged();  // Memberitahu JTable untuk menyegarkan tampilan
+        }
+
 
     private void searchBooks(String keyword) {
         if (keyword.isEmpty()) {
-            refreshTable();
+            refreshTable(); // Jika tidak ada keyword, tampilkan semua buku
         } else {
             List<Book> books = bookDAO.searchBooks(keyword);
             tableModel.setBooks(books);
@@ -77,9 +85,10 @@ public class MainFrame extends JFrame {
     }
 
     private void showAddBookDialog() {
-        AddBookDialog dialog = new AddBookDialog(this, bookDAO, tableModel);
+        AddBookDialog dialog = new AddBookDialog(this, bookDAO, tableModel, userId);  // Menambahkan userId
         dialog.setVisible(true);
     }
+    
 
     private void showEditBookDialog() {
         int selectedRow = bookTable.getSelectedRow();
@@ -88,7 +97,7 @@ public class MainFrame extends JFrame {
             return;
         }
         Book book = tableModel.getBookAt(selectedRow);
-        EditBookDialog dialog = new EditBookDialog(this, bookDAO, tableModel, book);
+        EditBookDialog dialog = new EditBookDialog(this, bookDAO, tableModel, book, userId);
         dialog.setVisible(true);
     }
 

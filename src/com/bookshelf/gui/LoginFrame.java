@@ -68,11 +68,16 @@ public class LoginFrame extends JFrame {
                 usernameField.getText(),
                 new String(passwordField.getPassword())
             );
-
+    
             if (success) {
+                // Mendapatkan user_id setelah login berhasil
+                int userId = userDAO.getUserIdByUsername(usernameField.getText()); // Ambil user_id berdasarkan username
+    
                 JOptionPane.showMessageDialog(this, "Login berhasil!");
                 dispose(); // Tutup frame login
-                new MainFrame().setVisible(true); // Buka frame utama
+    
+                // Kirim user_id ke MainFrame untuk menampilkan buku pengguna yang login
+                new MainFrame(userId).setVisible(true); // Pass userId ke MainFrame
             } else {
                 JOptionPane.showMessageDialog(this, "Username Belum terdaftar/ Password Salah ");
             }
@@ -80,6 +85,7 @@ public class LoginFrame extends JFrame {
             ex.printStackTrace();
         }
     }
+    
 
     /**
      * Method untuk membuka jendela registrasi

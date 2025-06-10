@@ -13,12 +13,14 @@ public class EditBookDialog extends JDialog {
     private JComboBox<String> cbStatus;
     private JSpinner spRating;
     private boolean succeeded = false;
+    private int userId;
 
-    public EditBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel, Book book) {
+    public EditBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel, Book book, int userId) {
         super(parent, "Edit Book", true);
         setLayout(new BorderLayout());
         setSize(400, 500);
         setLocationRelativeTo(parent);
+        this.userId = userId;
 
         // Form panel
         JPanel form = new JPanel(new GridBagLayout());
@@ -84,7 +86,8 @@ public class EditBookDialog extends JDialog {
                 if (bookDAO.updateBook(book)) {
                     JOptionPane.showMessageDialog(this, "Book updated successfully!");
                     succeeded = true;
-                    tableModel.setBooks(bookDAO.getAllBooks());
+                // Mengambil buku berdasarkan user_id yang login
+                tableModel.setBooks(bookDAO.getBooksByUserId(userId));
                     dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to update book.", "Error", JOptionPane.ERROR_MESSAGE);
