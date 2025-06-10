@@ -1,9 +1,11 @@
 package com.bookshelf.gui;
 
 import com.bookshelf.database.BookDAO;
+import com.bookshelf.database.DatabaseManager;
 import com.bookshelf.model.Book;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.sql.Connection;
 import java.util.List;
 import javax.swing.*;
 
@@ -13,7 +15,7 @@ public class MainFrame extends JFrame {
     private BookDAO bookDAO;
 
     public MainFrame() {
-        super("Simple Bookshelf Apps");
+        super("Bookshelf Apps");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 500);
         setLocationRelativeTo(null);
@@ -31,11 +33,14 @@ public class MainFrame extends JFrame {
         JButton btnEdit = new JButton("Edit Book");
         JButton btnDelete = new JButton("Delete Book");
         JButton btnRefresh = new JButton("Refresh");
+        JButton btnLogout = new JButton("Logout");
+        
         toolBar.add(btnAdd);
         toolBar.add(btnEdit);
         toolBar.add(btnDelete);
         toolBar.addSeparator();
         toolBar.add(btnRefresh);
+        toolBar.add(btnLogout);  // Menambahkan tombol logout ke toolbar
 
         // Search panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -57,6 +62,7 @@ public class MainFrame extends JFrame {
         btnDelete.addActionListener(e -> deleteSelectedBook());
         btnRefresh.addActionListener(e -> refreshTable());
         btnSearch.addActionListener(e -> searchBooks(searchField.getText().trim()));
+        btnLogout.addActionListener(e -> logoutApp());
 
         // Menu bar
         setJMenuBar(createMenuBar());
@@ -65,6 +71,31 @@ public class MainFrame extends JFrame {
     private void refreshTable() {
         List<Book> books = bookDAO.getAllBooks();
         tableModel.setBooks(books);
+    }
+
+    private void logoutApp() {
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Yakin ingin logout?", 
+            "Konfirmasi Logout", 
+            JOptionPane.YES_NO_OPTION);
+            
+        if (confirm == JOptionPane.YES_OPTION) {
+            dispose(); // Tutup MainFrame
+            
+            // Buka kembali LoginFrame
+            try {
+                // Menggunakan DatabaseManager dengan pola Singleton
+                DatabaseManager dbManager = DatabaseManager.getInstance();
+                Connection conn = dbManager.getConnection();
+                
+                LoginFrame loginFrame = new LoginFrame(conn);
+                loginFrame.setVisible(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, 
+                    "Error saat membuka halaman login: " + ex.getMessage());
+            }
+        }
     }
 
     private void searchBooks(String keyword) {
@@ -119,6 +150,7 @@ public class MainFrame extends JFrame {
         JMenuItem miExit = new JMenuItem(new AbstractAction("Exit") {
             public void actionPerformed(ActionEvent e) {
                 dispose();
+                System.exit(0);
             }
         });
 

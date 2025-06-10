@@ -7,33 +7,31 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Database Manager for MySQL Database
- * Handles connection and table creation for Bookshelf application
+ * Database Manager untuk mengelola koneksi dan operasi database MySQL
  */
 public class DatabaseManager {
     
-    // MySQL Database configuration
+    // ===== Konfigurasi koneksi database MySQL =====
     private static final String DB_HOST = "localhost";
     private static final String DB_PORT = "3306"; // Ganti ke 3306 jika default MySQL
     private static final String DB_NAME = "bookshelf_db";
     private static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME + 
                                         "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String DB_USERNAME = "root";
-    private static final String DB_PASSWORD = ""; // Ganti sesuai password MySQL Anda
+    private static final String DB_PASSWORD = "";
     private static final String DB_DRIVER = "com.mysql.cj.jdbc.Driver";
     
-    // Singleton instance
+    // ===== Singleton instance =====
     private static DatabaseManager instance;
     private Connection connection;
     
-    // Private constructor
+    // ===== Konstruktor private agar hanya bisa diakses dari dalam class (Singleton) =====
     private DatabaseManager() {
         initializeDatabase();
     }
     
     /**
-     * Get singleton instance of DatabaseManager
-     * @return DatabaseManager instance
+     * Mendapatkan instance tunggal DatabaseManager (pola Singleton)
      */
     public static synchronized DatabaseManager getInstance() {
         if (instance == null) {
@@ -43,41 +41,40 @@ public class DatabaseManager {
     }
     
     /**
-     * Initialize database - create database and tables if they don't exist
+     * Inisialisasi database: load driver, buat database jika belum ada, koneksi, dan buat tabel
      */
     private void initializeDatabase() {
         try {
-            // Load MySQL JDBC driver
+            // Memuat driver JDBC MySQL
             Class.forName(DB_DRIVER);
             
-            // First, connect without database name to create database if needed
+            // Koneksi tanpa nama database untuk membuat database jika belum ada
             createDatabaseIfNotExists();
             
-            // Connect to the specific database
+            // Koneksi ke database yang sudah ada
             connect();
             
-            // Create tables
+            // Membuat tabel-tabel yang diperlukan
             createTables();
             
             System.out.println("MySQL database initialized successfully!");
             
         } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC driver not found!");
-            System.err.println("Please make sure mysql-connector-java-x.x.x.jar is in your classpath.");
+            System.err.println("MySQL JDBC driver tidak ditemukan!");
+            System.err.println("Pastikan mysql-connector-java-x.x.x.jar sudah ada di classpath.");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("Database initialization failed!");
-            System.err.println("Please check:");
-            System.err.println("1. MySQL server is running");
-            System.err.println("2. Username and password are correct");
-            System.err.println("3. MySQL is accessible on " + DB_HOST + ":" + DB_PORT);
+            System.err.println("Inisialisasi database gagal!");
+            System.err.println("Cek:");
+            System.err.println("1. MySQL server sudah berjalan");
+            System.err.println("2. Username dan password sudah benar");
+            System.err.println("3. MySQL dapat diakses di " + DB_HOST + ":" + DB_PORT);
             e.printStackTrace();
         }
     }
     
     /**
-     * Create database if it doesn't exist
-     * @throws SQLException if database creation fails
+     * Membuat database jika belum ada
      */
     private void createDatabaseIfNotExists() throws SQLException {
         String createDbUrl = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + 
@@ -86,34 +83,31 @@ public class DatabaseManager {
         try (Connection conn = DriverManager.getConnection(createDbUrl, DB_USERNAME, DB_PASSWORD);
              Statement stmt = conn.createStatement()) {
             
-            // Create database if not exists
+            // Membuat database jika belum ada
             String createDbSQL = "CREATE DATABASE IF NOT EXISTS " + DB_NAME + 
                                " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
             stmt.execute(createDbSQL);
             
-            System.out.println("Database '" + DB_NAME + "' is ready!");
+            System.out.println("Database '" + DB_NAME + "' siap digunakan!");
             
         } catch (SQLException e) {
-            System.err.println("Failed to create database: " + e.getMessage());
+            System.err.println("Gagal membuat database: " + e.getMessage());
             throw e;
         }
     }
     
     /**
-     * Connect to MySQL database
-     * @throws SQLException if connection fails
+     * Membuka koneksi ke database MySQL
      */
     private void connect() throws SQLException {
         if (connection == null || connection.isClosed()) {
             connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-            System.out.println("Connected to MySQL database: " + DB_NAME);
+            System.out.println("Berhasil terhubung ke database MySQL: " + DB_NAME);
         }
     }
     
     /**
-     * Get database connection
-     * @return Connection object
-     * @throws SQLException if connection fails
+     * Mendapatkan objek koneksi database
      */
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
@@ -123,8 +117,7 @@ public class DatabaseManager {
     }
     
     /**
-     * Create necessary tables
-     * @throws SQLException if table creation fails
+     * Membuat tabel-tabel yang diperlukan di database
      */
     private void createTables() throws SQLException {
         createBooksTable();
@@ -132,8 +125,7 @@ public class DatabaseManager {
     }
     
     /**
-     * Create books table
-     * @throws SQLException if table creation fails
+     * Membuat tabel 'books' jika belum ada
      */
     private void createBooksTable() throws SQLException {
         String createBooksTableSQL = """
@@ -160,29 +152,28 @@ public class DatabaseManager {
         
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createBooksTableSQL);
-            System.out.println("Books table created successfully!");
+            System.out.println("Tabel books berhasil dibuat!");
         }
     }
     
     /**
-     * Insert sample data if table is empty
-     * @throws SQLException if insertion fails
+     * Menambahkan data contoh (sample) jika tabel masih kosong
      */
     private void insertSampleData() throws SQLException {
-        // Check if table is empty
+        // Mengecek apakah tabel kosong
         String countSQL = "SELECT COUNT(*) FROM books";
         try (Statement stmt = connection.createStatement();
              var rs = stmt.executeQuery(countSQL)) {
             
             if (rs.next() && rs.getInt(1) == 0) {
-                // Insert sample books
+                // Jika kosong, masukkan beberapa buku contoh
                 String insertSQL = """
                     INSERT INTO books (title, author, isbn, genre, publication_year, pages, description, rating, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
                 
                 try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
-                    // Sample Book 1
+                    // Buku contoh 1
                     pstmt.setString(1, "Clean Code");
                     pstmt.setString(2, "Robert C. Martin");
                     pstmt.setString(3, "978-0132350884");
@@ -194,7 +185,7 @@ public class DatabaseManager {
                     pstmt.setString(9, "Read");
                     pstmt.addBatch();
                     
-                    // Sample Book 2
+                    // Buku contoh 2
                     pstmt.setString(1, "Effective Java");
                     pstmt.setString(2, "Joshua Bloch");
                     pstmt.setString(3, "978-0134685991");
@@ -206,7 +197,7 @@ public class DatabaseManager {
                     pstmt.setString(9, "Reading");
                     pstmt.addBatch();
                     
-                    // Sample Book 3
+                    // Buku contoh 3
                     pstmt.setString(1, "The Pragmatic Programmer");
                     pstmt.setString(2, "David Thomas & Andrew Hunt");
                     pstmt.setString(3, "978-0135957059");
@@ -218,7 +209,7 @@ public class DatabaseManager {
                     pstmt.setString(9, "Want to Read");
                     pstmt.addBatch();
                     
-                    // Sample Book 4
+                    // Buku contoh 4
                     pstmt.setString(1, "Design Patterns");
                     pstmt.setString(2, "Gang of Four");
                     pstmt.setString(3, "978-0201633610");
@@ -230,7 +221,7 @@ public class DatabaseManager {
                     pstmt.setString(9, "Want to Read");
                     pstmt.addBatch();
                     
-                    // Sample Book 5
+                    // Buku contoh 5
                     pstmt.setString(1, "Java: The Complete Reference");
                     pstmt.setString(2, "Herbert Schildt");
                     pstmt.setString(3, "978-1260440232");
@@ -243,83 +234,78 @@ public class DatabaseManager {
                     pstmt.addBatch();
                     
                     pstmt.executeBatch();
-                    System.out.println("Sample data inserted successfully!");
+                    System.out.println("Data contoh berhasil dimasukkan!");
                 }
             }
         }
     }
     
     /**
-     * Close database connection
+     * Menutup koneksi database
      */
     public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("MySQL database connection closed.");
+                System.out.println("Koneksi database MySQL ditutup.");
             }
         } catch (SQLException e) {
-            System.err.println("Error closing database connection!");
+            System.err.println("Gagal menutup koneksi database!");
             e.printStackTrace();
         }
     }
     
     /**
-     * Get database connection info
-     * @return Database connection info
+     * Mendapatkan info koneksi database
      */
     public String getDatabaseInfo() {
         return String.format("MySQL Database: %s@%s:%s/%s", DB_USERNAME, DB_HOST, DB_PORT, DB_NAME);
     }
     
     /**
-     * Test database connection
-     * @return true if connection is successful
+     * Menguji koneksi database
      */
     public boolean testConnection() {
         try {
             Connection testConn = getConnection();
             if (testConn != null && !testConn.isClosed()) {
-                // Test with a simple query
+                // Tes dengan query sederhana
                 try (Statement stmt = testConn.createStatement();
                      var rs = stmt.executeQuery("SELECT COUNT(*) as book_count FROM books")) {
                     if (rs.next()) {
                         int bookCount = rs.getInt("book_count");
-                        System.out.println("MySQL connection test successful! Books count: " + bookCount);
+                        System.out.println("Tes koneksi MySQL berhasil! Jumlah buku: " + bookCount);
                         return true;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("MySQL connection test failed!");
+            System.err.println("Tes koneksi MySQL gagal!");
             System.err.println("Error: " + e.getMessage());
-            System.err.println("Please check:");
-            System.err.println("1. MySQL server is running (XAMPP/WAMP started)");
-            System.err.println("2. Database credentials are correct");
-            System.err.println("3. MySQL Connector/J is in classpath");
+            System.err.println("Cek:");
+            System.err.println("1. MySQL server sudah berjalan (XAMPP/WAMP sudah start)");
+            System.err.println("2. Username/password database sudah benar");
+            System.err.println("3. MySQL Connector/J sudah ada di classpath");
         }
         return false;
     }
     
     /**
-     * Execute SQL script (for maintenance or updates)
-     * @param sql SQL script to execute
-     * @return true if successful
+     * Menjalankan perintah SQL (untuk maintenance atau update)
      */
     public boolean executeSQLScript(String sql) {
         try (Statement stmt = getConnection().createStatement()) {
             stmt.execute(sql);
             return true;
         } catch (SQLException e) {
-            System.err.println("SQL script execution failed: " + sql);
+            System.err.println("Eksekusi SQL gagal: " + sql);
             e.printStackTrace();
             return false;
         }
     }
     
     /**
-     * Get database statistics
-     * @return Database statistics as string
+     * Mendapatkan statistik database (jumlah buku, status, rata-rata rating)
      */
     public String getDatabaseStats() {
         StringBuilder stats = new StringBuilder();
@@ -327,53 +313,53 @@ public class DatabaseManager {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             
-            // Total books
+            // Total buku
             try (var rs = stmt.executeQuery("SELECT COUNT(*) as total FROM books")) {
                 if (rs.next()) {
-                    stats.append("Total Books: ").append(rs.getInt("total")).append("\n");
+                    stats.append("Total Buku: ").append(rs.getInt("total")).append("\n");
                 }
             }
             
-            // Books by status
+            // Buku berdasarkan status
             try (var rs = stmt.executeQuery("SELECT status, COUNT(*) as count FROM books GROUP BY status")) {
-                stats.append("\nBooks by Status:\n");
+                stats.append("\nBuku berdasarkan Status:\n");
                 while (rs.next()) {
                     stats.append("- ").append(rs.getString("status")).append(": ")
                          .append(rs.getInt("count")).append("\n");
                 }
             }
             
-            // Average rating
+            // Rata-rata rating
             try (var rs = stmt.executeQuery("SELECT AVG(rating) as avg_rating FROM books WHERE rating > 0")) {
                 if (rs.next()) {
-                    stats.append("\nAverage Rating: ").append(String.format("%.1f", rs.getDouble("avg_rating")));
+                    stats.append("\nRata-rata Rating: ").append(String.format("%.1f", rs.getDouble("avg_rating")));
                 }
             }
             
         } catch (SQLException e) {
-            stats.append("Error retrieving statistics: ").append(e.getMessage());
+            stats.append("Gagal mengambil statistik: ").append(e.getMessage());
         }
         
         return stats.toString();
     }
     
-    // Main method for testing
+    // ===== Main method untuk testing mandiri =====
     public static void main(String[] args) {
         System.out.println("Testing MySQL DatabaseManager...");
         
         DatabaseManager dbManager = DatabaseManager.getInstance();
         
         if (dbManager.testConnection()) {
-            System.out.println("✅ MySQL DatabaseManager is working correctly!");
-            System.out.println("Connection: " + dbManager.getDatabaseInfo());
+            System.out.println("✅ MySQL DatabaseManager berjalan dengan baik!");
+            System.out.println("Koneksi: " + dbManager.getDatabaseInfo());
             System.out.println("\n" + dbManager.getDatabaseStats());
         } else {
-            System.out.println("❌ MySQL DatabaseManager test failed!");
-            System.out.println("\nTroubleshooting Steps:");
-            System.out.println("1. Start XAMPP/WAMP and ensure MySQL is running");
-            System.out.println("2. Check MySQL username/password in code");
-            System.out.println("3. Verify MySQL Connector/J JAR is in classpath");
-            System.out.println("4. Test phpMyAdmin access: http://localhost/phpmyadmin");
+            System.out.println("❌ Tes DatabaseManager gagal!");
+            System.out.println("\nLangkah Troubleshooting:");
+            System.out.println("1. Jalankan XAMPP/WAMP dan pastikan MySQL aktif");
+            System.out.println("2. Cek username/password MySQL di kode");
+            System.out.println("3. Pastikan MySQL Connector/J JAR sudah ada di classpath");
+            System.out.println("4. Tes akses phpMyAdmin: http://localhost/phpmyadmin");
         }
         
         dbManager.closeConnection();

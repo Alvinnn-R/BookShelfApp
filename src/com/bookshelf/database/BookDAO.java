@@ -8,20 +8,22 @@ import java.util.List;
 
 /**
  * Book Data Access Object Implementation for MySQL
- * Handles all database operations for Book entity
+ * Kelas ini menangani semua operasi database untuk entitas Book
  */
 public class BookDAO {
     
+    // Objek untuk mengelola koneksi database
     private DatabaseManager dbManager;
     
+    // Konstruktor: mengambil instance DatabaseManager (singleton)
     public BookDAO() {
         this.dbManager = DatabaseManager.getInstance();
     }
     
     /**
-     * CREATE - Add a new book to database
-     * @param book Book object to add
-     * @return true if successful, false otherwise
+     * CREATE - Menambah buku baru ke database
+     * @param book Objek Book yang akan ditambah
+     * @return true jika berhasil, false jika gagal
      */
     public boolean addBook(Book book) {
         String sql = """
@@ -33,7 +35,7 @@ public class BookDAO {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            // Set parameters
+            // Set parameter sesuai urutan kolom di database
             pstmt.setString(1, book.getTitle());
             pstmt.setString(2, book.getAuthor());
             pstmt.setString(3, book.getIsbn());
@@ -47,7 +49,7 @@ public class BookDAO {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                // Get generated ID
+                // Ambil ID yang di-generate otomatis oleh database
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         book.setId(generatedKeys.getInt(1));
@@ -60,7 +62,7 @@ public class BookDAO {
         } catch (SQLException e) {
             System.err.println("Error adding book: " + e.getMessage());
             if (e.getMessage().contains("Duplicate entry")) {
-                System.err.println("ISBN already exists: " + book.getIsbn());
+                System.err.println("ISBN sudah ada: " + book.getIsbn());
             }
             e.printStackTrace();
         }
@@ -69,9 +71,9 @@ public class BookDAO {
     }
     
     /**
-     * READ - Get book by ID
-     * @param id Book ID
-     * @return Book object or null if not found
+     * READ - Mengambil buku berdasarkan ID
+     * @param id ID buku
+     * @return Objek Book atau null jika tidak ditemukan
      */
     public Book getBookById(int id) {
         String sql = "SELECT * FROM books WHERE id = ?";
@@ -96,8 +98,8 @@ public class BookDAO {
     }
     
     /**
-     * READ - Get all books
-     * @return List of all books
+     * READ - Mengambil semua buku
+     * @return List berisi semua buku
      */
     public List<Book> getAllBooks() {
         List<Book> books = new ArrayList<>();
@@ -120,9 +122,9 @@ public class BookDAO {
     }
     
     /**
-     * READ - Search books by title, author, or ISBN
-     * @param searchTerm Search term
-     * @return List of matching books
+     * READ - Cari buku berdasarkan judul, penulis, atau ISBN
+     * @param searchTerm Kata kunci pencarian
+     * @return List buku yang cocok
      */
     public List<Book> searchBooks(String searchTerm) {
         List<Book> books = new ArrayList<>();
@@ -157,9 +159,9 @@ public class BookDAO {
     }
     
     /**
-     * READ - Get books by status
-     * @param status Book status
-     * @return List of books with specified status
+     * READ - Mengambil buku berdasarkan status
+     * @param status Status buku
+     * @return List buku dengan status yang ditentukan
      */
     public List<Book> getBooksByStatus(String status) {
         List<Book> books = new ArrayList<>();
@@ -185,9 +187,9 @@ public class BookDAO {
     }
     
     /**
-     * READ - Get books by genre
-     * @param genre Book genre
-     * @return List of books in specified genre
+     * READ - Mengambil buku berdasarkan genre
+     * @param genre Genre buku
+     * @return List buku dalam genre yang ditentukan
      */
     public List<Book> getBooksByGenre(String genre) {
         List<Book> books = new ArrayList<>();
@@ -213,12 +215,12 @@ public class BookDAO {
     }
     
     /**
-     * READ - Advanced search with multiple filters
-     * @param searchTerm Search term (can be null)
-     * @param genre Genre filter (can be null)
-     * @param status Status filter (can be null)
-     * @param minRating Minimum rating (can be null)
-     * @return List of books matching criteria
+     * READ - Pencarian lanjutan dengan beberapa filter
+     * @param searchTerm Kata kunci pencarian (boleh null)
+     * @param genre Filter genre (boleh null)
+     * @param status Filter status (boleh null)
+     * @param minRating Rating minimum (boleh null)
+     * @return List buku yang cocok dengan kriteria
      */
     public List<Book> searchBooksWithFilters(String searchTerm, String genre, String status, Double minRating) {
         List<Book> books = new ArrayList<>();
@@ -278,9 +280,9 @@ public class BookDAO {
     }
     
     /**
-     * UPDATE - Update existing book
-     * @param book Book with updated information
-     * @return true if successful, false otherwise
+     * UPDATE - Memperbarui informasi buku yang sudah ada
+     * @param book Buku dengan informasi terbaru
+     * @return true jika berhasil, false jika gagal
      */
     public boolean updateBook(Book book) {
         String sql = """
@@ -294,7 +296,7 @@ public class BookDAO {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            // Set parameters
+            // Set parameter sesuai urutan kolom di database
             pstmt.setString(1, book.getTitle());
             pstmt.setString(2, book.getAuthor());
             pstmt.setString(3, book.getIsbn());
@@ -316,7 +318,7 @@ public class BookDAO {
         } catch (SQLException e) {
             System.err.println("Error updating book: " + e.getMessage());
             if (e.getMessage().contains("Duplicate entry")) {
-                System.err.println("ISBN already exists: " + book.getIsbn());
+                System.err.println("ISBN sudah ada: " + book.getIsbn());
             }
             e.printStackTrace();
         }
@@ -325,10 +327,10 @@ public class BookDAO {
     }
     
     /**
-     * UPDATE - Update book rating only
-     * @param bookId Book ID
-     * @param rating New rating
-     * @return true if successful, false otherwise
+     * UPDATE - Memperbarui rating buku saja
+     * @param bookId ID buku
+     * @param rating Rating baru
+     * @return true jika berhasil, false jika gagal
      */
     public boolean updateBookRating(int bookId, double rating) {
         String sql = "UPDATE books SET rating = ? WHERE id = ?";
@@ -351,10 +353,10 @@ public class BookDAO {
     }
     
     /**
-     * UPDATE - Update book status only
-     * @param bookId Book ID
-     * @param status New status
-     * @return true if successful, false otherwise
+     * UPDATE - Memperbarui status buku saja
+     * @param bookId ID buku
+     * @param status Status baru
+     * @return true jika berhasil, false jika gagal
      */
     public boolean updateBookStatus(int bookId, String status) {
         String sql = "UPDATE books SET status = ? WHERE id = ?";
@@ -377,9 +379,9 @@ public class BookDAO {
     }
     
     /**
-     * DELETE - Delete book by ID
-     * @param id Book ID
-     * @return true if successful, false otherwise
+     * DELETE - Menghapus buku berdasarkan ID
+     * @param id ID buku
+     * @return true jika berhasil, false jika gagal
      */
     public boolean deleteBook(int id) {
         String sql = "DELETE FROM books WHERE id = ?";
@@ -405,8 +407,8 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get total book count
-     * @return Total number of books
+     * UTILITY - Mengambil total jumlah buku
+     * @return Total jumlah buku
      */
     public int getTotalBooksCount() {
         String sql = "SELECT COUNT(*) as total FROM books";
@@ -428,9 +430,9 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get book count by status
-     * @param status Book status
-     * @return Number of books with specified status
+     * UTILITY - Mengambil jumlah buku berdasarkan status
+     * @param status Status buku
+     * @return Jumlah buku dengan status yang ditentukan
      */
     public int getBooksCountByStatus(String status) {
         String sql = "SELECT COUNT(*) as count FROM books WHERE status = ?";
@@ -455,8 +457,8 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get all unique genres
-     * @return List of unique genres
+     * UTILITY - Mengambil semua genre yang unik
+     * @return List genre yang unik
      */
     public List<String> getAllGenres() {
         List<String> genres = new ArrayList<>();
@@ -482,8 +484,8 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get all unique authors
-     * @return List of unique authors
+     * UTILITY - Mengambil semua penulis yang unik
+     * @return List penulis yang unik
      */
     public List<String> getAllAuthors() {
         List<String> authors = new ArrayList<>();
@@ -509,9 +511,9 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Check if ISBN exists
-     * @param isbn ISBN to check
-     * @return true if ISBN exists, false otherwise
+     * UTILITY - Memeriksa apakah ISBN sudah ada
+     * @param isbn ISBN yang akan diperiksa
+     * @return true jika ISBN sudah ada, false jika tidak
      */
     public boolean isIsbnExists(String isbn) {
         if (isbn == null || isbn.trim().isEmpty()) {
@@ -540,10 +542,10 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Check if ISBN exists for different book (for updates)
-     * @param isbn ISBN to check
-     * @param excludeBookId Book ID to exclude
-     * @return true if ISBN exists for different book, false otherwise
+     * UTILITY - Memeriksa apakah ISBN sudah ada untuk buku yang berbeda (untuk pembaruan)
+     * @param isbn ISBN yang akan diperiksa
+     * @param excludeBookId ID buku yang akan dikecualikan dari pemeriksaan
+     * @return true jika ISBN ada untuk buku yang berbeda, false jika tidak
      */
     public boolean isIsbnExistsForDifferentBook(String isbn, int excludeBookId) {
         if (isbn == null || isbn.trim().isEmpty()) {
@@ -573,10 +575,10 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get books with pagination
-     * @param offset Starting position (0-based)
-     * @param limit Number of books to retrieve
-     * @return List of books for the specified page
+     * UTILITY - Mengambil buku dengan paginasi
+     * @param offset Posisi awal (0-based)
+     * @param limit Jumlah buku yang akan diambil
+     * @return List buku untuk halaman yang ditentukan
      */
     public List<Book> getBooksWithPagination(int offset, int limit) {
         List<Book> books = new ArrayList<>();
@@ -603,9 +605,9 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get top rated books
-     * @param limit Number of books to retrieve
-     * @return List of top rated books
+     * UTILITY - Mengambil buku dengan rating tertinggi
+     * @param limit Jumlah buku yang akan diambil
+     * @return List buku dengan rating tertinggi
      */
     public List<Book> getTopRatedBooks(int limit) {
         List<Book> books = new ArrayList<>();
@@ -631,9 +633,9 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get recently added books
-     * @param limit Number of books to retrieve
-     * @return List of recently added books
+     * UTILITY - Mengambil buku yang baru ditambahkan
+     * @param limit Jumlah buku yang akan diambil
+     * @return List buku yang baru ditambahkan
      */
     public List<Book> getRecentlyAddedBooks(int limit) {
         List<Book> books = new ArrayList<>();
@@ -659,8 +661,8 @@ public class BookDAO {
     }
     
     /**
-     * UTILITY - Get reading statistics
-     * @return Reading statistics as formatted string
+     * UTILITY - Mengambil statistik membaca
+     * @return Statistik membaca dalam bentuk string terformat
      */
     public String getReadingStatistics() {
         StringBuilder stats = new StringBuilder();
@@ -668,7 +670,7 @@ public class BookDAO {
         try (Connection conn = dbManager.getConnection();
              Statement stmt = conn.createStatement()) {
             
-            // Total books and by status
+            // Total buku dan berdasarkan status
             try (ResultSet rs = stmt.executeQuery("""
                 SELECT 
                     COUNT(*) as total,
@@ -681,17 +683,17 @@ public class BookDAO {
                 """)) {
                 
                 if (rs.next()) {
-                    stats.append("📚 Reading Statistics:\n");
-                    stats.append("Total Books: ").append(rs.getInt("total")).append("\n");
-                    stats.append("Read: ").append(rs.getInt("read_count")).append("\n");
-                    stats.append("Currently Reading: ").append(rs.getInt("reading_count")).append("\n");
-                    stats.append("Want to Read: ").append(rs.getInt("want_to_read_count")).append("\n");
-                    stats.append("Average Rating: ").append(String.format("%.1f", rs.getDouble("avg_rating"))).append("/5.0\n");
-                    stats.append("Total Pages: ").append(String.format("%,d", rs.getInt("total_pages"))).append("\n");
+                    stats.append("📚 Statistik Membaca:\n");
+                    stats.append("Total Buku: ").append(rs.getInt("total")).append("\n");
+                    stats.append("Sudah Dibaca: ").append(rs.getInt("read_count")).append("\n");
+                    stats.append("Sedang Dibaca: ").append(rs.getInt("reading_count")).append("\n");
+                    stats.append("Ingin Dibaca: ").append(rs.getInt("want_to_read_count")).append("\n");
+                    stats.append("Rating Rata-rata: ").append(String.format("%.1f", rs.getDouble("avg_rating"))).append("/5.0\n");
+                    stats.append("Total Halaman: ").append(String.format("%,d", rs.getInt("total_pages"))).append("\n");
                 }
             }
             
-            // Top genres
+            // Genre teratas
             try (ResultSet rs = stmt.executeQuery("""
                 SELECT genre, COUNT(*) as count 
                 FROM books 
@@ -701,10 +703,10 @@ public class BookDAO {
                 LIMIT 5
                 """)) {
                 
-                stats.append("\n📊 Top Genres:\n");
+                stats.append("\n📊 Genre Teratas:\n");
                 while (rs.next()) {
                     stats.append("- ").append(rs.getString("genre"))
-                         .append(": ").append(rs.getInt("count")).append(" books\n");
+                         .append(": ").append(rs.getInt("count")).append(" buku\n");
                 }
             }
             
@@ -716,10 +718,10 @@ public class BookDAO {
     }
     
     /**
-     * Helper method to map ResultSet to Book object
-     * @param rs ResultSet
-     * @return Book object
-     * @throws SQLException if mapping fails
+     * Helper method untuk mengubah ResultSet menjadi objek Book
+     * @param rs ResultSet dari query
+     * @return Objek Book
+     * @throws SQLException jika mapping gagal
      */
     private Book mapResultSetToBook(ResultSet rs) throws SQLException {
         Book book = new Book();
@@ -735,7 +737,7 @@ public class BookDAO {
         book.setRating(rs.getBigDecimal("rating").doubleValue());
         book.setStatus(rs.getString("status"));
         
-        // Handle timestamps
+        // Handle waktu penambahan dan update
         Timestamp dateAdded = rs.getTimestamp("date_added");
         Timestamp dateUpdated = rs.getTimestamp("date_updated");
         
