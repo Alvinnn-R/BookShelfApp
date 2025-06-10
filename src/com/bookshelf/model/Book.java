@@ -8,19 +8,19 @@ import java.time.format.DateTimeFormatter;
  * Merepresentasikan entitas buku beserta semua properti yang diperlukan
  */
 public class Book {
-    // ===== Properti utama buku =====
-    private int id;                 // ID unik buku (biasanya dari database)
-    private String title;           // Judul buku
-    private String author;          // Nama penulis
-    private String isbn;            // ISBN buku (boleh kosong)
-    private String genre;           // Genre/kategori buku
-    private int publicationYear;    // Tahun terbit
-    private int pages;              // Jumlah halaman
-    private String description;     // Deskripsi singkat buku
-    private double rating;          // Rating buku (0.0 - 5.0)
-    private String status;          // Status baca: "Want to Read", "Reading", "Read"
-    private LocalDateTime dateAdded;    // Tanggal buku ditambahkan
-    private LocalDateTime dateUpdated;  // Tanggal terakhir buku diubah
+    private int id;
+    private String title;
+    private String author;
+    private String isbn;
+    private String genre;
+    private int publicationYear;
+    private int pages;
+    private String description;
+    private double rating;
+    private String status; // "Want to Read", "Reading", "Read"
+    private LocalDateTime dateAdded;
+    private LocalDateTime dateUpdated;
+    private int userId;
     
     // ===== Konstanta status =====
     public static final String STATUS_WANT_TO_READ = "Want to Read";
@@ -51,7 +51,7 @@ public class Book {
     // ===== Konstruktor lengkap (biasanya untuk data dari database) =====
     public Book(int id, String title, String author, String isbn, String genre,
                 int publicationYear, int pages, String description, double rating, 
-                String status, LocalDateTime dateAdded, LocalDateTime dateUpdated) {
+                String status, LocalDateTime dateAdded, LocalDateTime dateUpdated, int userId) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -64,6 +64,7 @@ public class Book {
         this.status = status;
         this.dateAdded = dateAdded;
         this.dateUpdated = dateUpdated;
+        this.userId = userId;
     }
     
     // ===== Getter dan Setter untuk setiap properti =====

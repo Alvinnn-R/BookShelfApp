@@ -15,14 +15,14 @@ public class EditBookDialog extends JDialog {
     private JSpinner spRating;
     // Penanda apakah proses edit berhasil
     private boolean succeeded = false;
+    private int userId;
 
-    // Konstruktor dialog edit buku
-    public EditBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel, Book book) {
-        // Membuat dialog modal dengan judul "Edit Book"
+    public EditBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel, Book book, int userId) {
         super(parent, "Edit Book", true);
         setLayout(new BorderLayout());
         setSize(400, 500);
-        setLocationRelativeTo(parent); // Tampilkan di tengah parent
+        setLocationRelativeTo(parent);
+        this.userId = userId;
 
         // Panel form input
         JPanel form = new JPanel(new GridBagLayout());
@@ -92,9 +92,10 @@ public class EditBookDialog extends JDialog {
                 // Update buku di database
                 if (bookDAO.updateBook(book)) {
                     JOptionPane.showMessageDialog(this, "Book updated successfully!");
-                    succeeded = true; // Tandai berhasil
-                    tableModel.setBooks(bookDAO.getAllBooks()); // Update tabel buku
-                    dispose(); // Tutup dialog
+                    succeeded = true;
+                // Mengambil buku berdasarkan user_id yang login
+                tableModel.setBooks(bookDAO.getBooksByUserId(userId));
+                    dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to update book.", "Error", JOptionPane.ERROR_MESSAGE);
                 }

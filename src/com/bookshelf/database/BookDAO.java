@@ -14,11 +14,49 @@ public class BookDAO {
     
     // Objek untuk mengelola koneksi database
     private DatabaseManager dbManager;
+    private int userId;  // Menyimpan userId untuk digunakan dalam query
     
-    // Konstruktor: mengambil instance DatabaseManager (singleton)
-    public BookDAO() {
-        this.dbManager = DatabaseManager.getInstance();
+
+  // Konstruktor BookDAO untuk menerima userId
+  public BookDAO(int userId) {
+    this.dbManager = DatabaseManager.getInstance();
+    this.userId = userId;  // Menyimpan userId untuk digunakan dalam query
+}
+
+// Method untuk mendapatkan buku berdasarkan user_id
+public List<Book> getBooksByUserId() {
+    List<Book> books = new ArrayList<>();
+    String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added DESC";  // Filter berdasarkan user_id
+    
+    try (Connection conn = dbManager.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        pstmt.setInt(1, userId);  // Menggunakan user_id untuk memfilter buku
+        ResultSet rs = pstmt.executeQuery();
+        
+        while (rs.next()) {
+            books.add(new Book(
+                rs.getInt("id"),
+                rs.getString("title"),
+                rs.getString("author"),
+                rs.getString("isbn"),
+                rs.getString("genre"),
+                rs.getInt("publication_year"),
+                rs.getInt("pages"),
+                rs.getString("description"),
+                rs.getDouble("rating"),
+                rs.getString("status"),
+                rs.getTimestamp("date_added").toLocalDateTime(),
+                rs.getTimestamp("date_updated").toLocalDateTime(),
+                rs.getInt("user_id")
+            ));            
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return books;
+}
+    
     
     /**
      * CREATE - Menambah buku baru ke database
@@ -26,50 +64,28 @@ public class BookDAO {
      * @return true jika berhasil, false jika gagal
      */
     public boolean addBook(Book book) {
-        String sql = """
-            INSERT INTO books (title, author, isbn, genre, publication_year, pages, 
-                              description, rating, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-        
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            // Set parameter sesuai urutan kolom di database
-            pstmt.setString(1, book.getTitle());
-            pstmt.setString(2, book.getAuthor());
-            pstmt.setString(3, book.getIsbn());
-            pstmt.setString(4, book.getGenre());
-            pstmt.setInt(5, book.getPublicationYear());
-            pstmt.setInt(6, book.getPages());
-            pstmt.setString(7, book.getDescription());
-            pstmt.setBigDecimal(8, new java.math.BigDecimal(book.getRating()));
-            pstmt.setString(9, book.getStatus());
-            
-            int rowsAffected = pstmt.executeUpdate();
-            
-            if (rowsAffected > 0) {
-                // Ambil ID yang di-generate otomatis oleh database
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        book.setId(generatedKeys.getInt(1));
-                    }
-                }
-                System.out.println("Book added successfully: " + book.getTitle());
-                return true;
-            }
-            
+
+        String query = "INSERT INTO books (title, author, isbn, genre, publication_year, pages, description, rating, status, date_added, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = dbManager.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, book.getTitle());
+            stmt.setString(2, book.getAuthor());
+            stmt.setString(3, book.getIsbn());
+            stmt.setString(4, book.getGenre());
+            stmt.setInt(5, book.getPublicationYear());
+            stmt.setInt(6, book.getPages());
+            stmt.setString(7, book.getDescription());
+            stmt.setDouble(8, book.getRating());
+            stmt.setString(9, book.getStatus());
+            stmt.setTimestamp(10, Timestamp.valueOf(book.getDateAdded()));
+            stmt.setInt(11, this.userId);  // Pastikan user_id di-set dengan benar
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error adding book: " + e.getMessage());
-            if (e.getMessage().contains("Duplicate entry")) {
-                System.err.println("ISBN sudah ada: " + book.getIsbn());
-            }
             e.printStackTrace();
         }
-        
         return false;
     }
-    
+        
     /**
      * READ - Mengambil buku berdasarkan ID
      * @param id ID buku
@@ -101,25 +117,27 @@ public class BookDAO {
      * READ - Mengambil semua buku
      * @return List berisi semua buku
      */
-    public List<Book> getAllBooks() {
+    // Menambahkan method untuk mengambil buku berdasarkan user_id
+    public List<Book> getBooksByUserId(int userId) {
         List<Book> books = new ArrayList<>();
-        String sql = "SELECT * FROM books ORDER BY date_added DESC";
+        String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added DESC";
         
         try (Connection conn = dbManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);  // Menggunakan user_id untuk memfilter buku
+            ResultSet rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                books.add(mapResultSetToBook(rs));
+                books.add(mapResultSetToBook(rs)); // Menambahkan buku ke list
             }
-            
         } catch (SQLException e) {
-            System.err.println("Error getting all books: " + e.getMessage());
+            System.err.println("Error getting books by user_id: " + e.getMessage());
             e.printStackTrace();
         }
-        
         return books;
     }
+
     
     /**
      * READ - Cari buku berdasarkan judul, penulis, atau ISBN
@@ -760,12 +778,14 @@ public class BookDAO {
     public static void main(String[] args) {
         System.out.println("Testing MySQL BookDAO...");
         
-        BookDAO bookDAO = new BookDAO();
+        int userId = 1; // Gantilah dengan nilai userId yang sebenarnya setelah login
+
+        BookDAO bookDAO = new BookDAO(userId);  // Menggunakan userId yang sudah didefinisikan
         
         // Test get all books
-        List<Book> books = bookDAO.getAllBooks();
+        List<Book> books = bookDAO.getBooksByUserId();
         System.out.println("Total books in database: " + books.size());
-        
+    
         if (!books.isEmpty()) {
             System.out.println("First book: " + books.get(0).getTitle() + " by " + books.get(0).getAuthor());
         }

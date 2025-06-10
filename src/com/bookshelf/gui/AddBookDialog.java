@@ -15,15 +15,15 @@ public class AddBookDialog extends JDialog {
     private JSpinner spRating;
     // Penanda apakah penambahan buku berhasil
     private boolean succeeded = false;
+    private int userId;
 
-    // Konstruktor dialog tambah buku
-    public AddBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel) {
-        // Membuat dialog modal dengan judul "Add New Book"
+
+    public AddBookDialog(JFrame parent, BookDAO bookDAO, BookTableModel tableModel, int userId) {
         super(parent, "Add New Book", true);
         setLayout(new BorderLayout());
         setSize(400, 500);
-        setLocationRelativeTo(parent); // Tampilkan di tengah parent
-
+        setLocationRelativeTo(parent);
+        this.userId = userId;
         // Panel form input
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -87,20 +87,21 @@ public class AddBookDialog extends JDialog {
                 book.setDescription(taDescription.getText().trim());
                 book.setStatus((String) cbStatus.getSelectedItem());
                 book.setRating((Double) spRating.getValue());
-
-                // Simpan buku ke database
+        
                 if (bookDAO.addBook(book)) {
                     JOptionPane.showMessageDialog(this, "Book added successfully!");
-                    succeeded = true; // Tandai berhasil
-                    tableModel.setBooks(bookDAO.getAllBooks()); // Update tabel buku
-                    dispose(); // Tutup dialog
+                    succeeded = true;
+        
+                    // Memperbarui data buku berdasarkan userId setelah menambah buku
+                    tableModel.setBooks(bookDAO.getBooksByUserId(userId));
+                    tableModel.fireTableDataChanged(); // Menyegarkan tampilan JTable
+        
+                    dispose();  // Menutup dialog setelah menambah buku
                 } else {
                     JOptionPane.showMessageDialog(this, "Failed to add book.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-
-        // Aksi saat tombol Cancel diklik
         btnCancel.addActionListener(e -> dispose());
     }
 

@@ -36,4 +36,19 @@ public class UserDAO {
         ResultSet rs = stmt.executeQuery();
         return rs.next(); // Login berhasil jika ada data yang cocok
     }
+
+    // mendapatkan user_id berdasarkan username
+    public int getUserIdByUsername(String username) throws SQLException {
+        String query = "SELECT id FROM users WHERE username = ?";
+        PreparedStatement stmt = conn.prepareStatement(query);
+        stmt.setString(1, username);
+        ResultSet rs = stmt.executeQuery();
+    
+        if (rs.next()) {
+            return rs.getInt("id"); // Mengembalikan user_id
+        } else {
+            throw new SQLException("User not found");
+        }
+    }
+    
 }
