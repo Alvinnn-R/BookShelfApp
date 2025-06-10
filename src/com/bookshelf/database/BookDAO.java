@@ -26,7 +26,7 @@ public class BookDAO {
 // Method untuk mendapatkan buku berdasarkan user_id
 public List<Book> getBooksByUserId() {
     List<Book> books = new ArrayList<>();
-    String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added DESC";  // Filter berdasarkan user_id
+    String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added ASC";  // Filter berdasarkan user_id
     
     try (Connection conn = dbManager.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -120,7 +120,7 @@ public List<Book> getBooksByUserId() {
     // Menambahkan method untuk mengambil buku berdasarkan user_id
     public List<Book> getBooksByUserId(int userId) {
         List<Book> books = new ArrayList<>();
-        String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added DESC";
+        String sql = "SELECT * FROM books WHERE user_id = ? ORDER BY date_added ASC";
         
         try (Connection conn = dbManager.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
