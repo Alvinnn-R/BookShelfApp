@@ -46,7 +46,7 @@ public class BookTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Book book = books.get(rowIndex);
         switch (columnIndex) {
-            case 0: return book.getId();               // ID buku
+            case 0: return rowIndex + 1;               // ID buku
             case 1: return book.getTitle();            // Judul buku
             case 2: return book.getAuthor();           // Penulis
             case 3: return book.getIsbn();             // ISBN
